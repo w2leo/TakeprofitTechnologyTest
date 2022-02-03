@@ -1,0 +1,7 @@
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\bin\Debug\TakeprofitTechnologyTest.exe.config
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\bin\Debug\TakeprofitTechnologyTest.exe
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\bin\Debug\TakeprofitTechnologyTest.pdb
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\obj\Debug\TakeprofitTechnologyTest.csproj.AssemblyReference.cache
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\obj\Debug\TakeprofitTechnologyTest.csproj.CoreCompileInputs.cache
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\obj\Debug\TakeprofitTechnologyTest.exe
+C:\Users\PC-Home\source\repos\TakeprofitTechnologyTest\TakeprofitTechnologyTest\obj\Debug\TakeprofitTechnologyTest.pdb
