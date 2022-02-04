@@ -9,34 +9,35 @@ namespace TakeprofitTechnologyTest
 {
     class Program
     {
-         static void Main(string[] args)
+        static void Main(string[] args)
         {
             string server = "88.212.241.115";
             int port = 2013;
             string receivedMessage;
 
-            TcpClient client = Connect(server, port);
-            Stream stream = OpenStream(client);
-           
-            ReadServerMessage(stream);
-            
-            SendServerMessage("Greetings\n", stream);
-            
-           
+            for (int i = 1; i < 10; i++)
+            {
+                TcpClient client = Connect(server, port);
+                Stream stream = OpenStream(client);
 
-            Console.WriteLine("End of read");
+                ReadServerMessage(stream);
 
-            var t = ReadServerMessageAsync(stream);
-             receivedMessage = ReadServerMessage( stream);
-            Console.WriteLine(t.Result);
-            //File.WriteAllText("taskNew.txt", receivedMessage);
+                // SendServerMessage("Greetings\n", stream);
+
+                SendServerMessage($"{i}\n", stream);
+
+                Thread.Sleep(1);
+                Console.WriteLine("End of read");
 
 
+                receivedMessage = ReadServerMessage(stream);
+                Console.WriteLine(receivedMessage);
+
+                //File.WriteAllText("taskNew.txt", receivedMessage);
 
 
-
-
-            Disconnect(client, stream);
+                Disconnect(client, stream);
+            }
             Console.ReadKey();
         }
 
@@ -83,7 +84,7 @@ namespace TakeprofitTechnologyTest
             }
         }
 
-        static string ReadServerMessage( Stream stream)
+        static string ReadServerMessage(Stream stream)
         {
             Byte[] data = new Byte[2048];
             String responseData = String.Empty;
@@ -97,7 +98,7 @@ namespace TakeprofitTechnologyTest
         static async Task<string> ReadServerMessageAsync(Stream stream)
         {
             Byte[] data = new Byte[2048];
-            
+
             String responseData = String.Empty;
             //Int32 bytes = stream.Read(data, 0, data.Length);
             using (stream)
