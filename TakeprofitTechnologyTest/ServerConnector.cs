@@ -25,7 +25,6 @@ namespace TakeprofitTechnologyTest
         {
             CloseConnection();
             server = new TcpClient(ipAdress, port);
-           // Console.WriteLine($"Connection status = {server.Connected}");
         }
 
         public virtual void CloseConnection()
