@@ -16,6 +16,21 @@ namespace TakeprofitTechnologyTest
         static Dictionary<int, int> dataDictionary = new Dictionary<int, int>();
         static object locker = new object();
 
+        static void Main(string[] args)
+        {
+            List<Thread> activeThreads = new List<Thread>();
+
+            CreateNewThreads(MAX_THREADS, activeThreads, GetData);
+            JoinToAwaitThreads(activeThreads);
+
+            double result = CountMedian(dataDictionary.Values.ToList<int>());
+
+            ServerIO server = new ServerIO(ADRESS, PORT);
+            server.GetStringData($"Check {result}\n", out string dataReceived);
+            Console.WriteLine(dataReceived);
+            Console.ReadKey();
+        }
+
         static string FormatMessage(int value)
         {
             return $"{value}\n";
@@ -77,62 +92,30 @@ namespace TakeprofitTechnologyTest
             dataDictionary[key] = value;
         }
 
-        static void Main(string[] args)
+        static void CreateNewThreads(int threadCount, List<Thread> threads, ThreadStart startMethod)
         {
-            DateTime startTime = DateTime.Now;
-            Console.WriteLine($"Start time = {startTime}");
-            List<Thread> threads = new List<Thread>();
-            for (int i = 0; i < MAX_THREADS; i++)
+            for (int i = 0; i < threadCount; i++)
             {
-                threads.Add(new Thread(GetData));
-                threads[i].Start();
-                Thread.Sleep(THREAD_START_DELAY);
+                threads.Add(new Thread(startMethod));
             }
-
-            for (int i = 0; i < MAX_THREADS; i++)
-            {
-                threads[i].Join();
-            }
-
-            DateTime endTime = DateTime.Now;
-            Console.WriteLine($"End time = {endTime}");
-            Console.WriteLine($"Time duration = {endTime - startTime}");
-
-            double result = CountMedian(dataDictionary.Values.ToList<int>());
-
-
-            File.WriteAllLines("sortedData.txt", sortedData.ConvertAll(x => x.ToString()));
-            Console.WriteLine();
-
-            Console.WriteLine("Result = " + result);
-            File.WriteAllText("Result.txt", "Result = " + result);
-
-
-            //double result = 4925680.5;
-            ServerIO server = new ServerIO(ADRESS, PORT);
-            //Console.WriteLine(server.GetStringData($"74\n"));
-            server.GetStringData($"Check {result}\n", out string dataReceived);
-
-            // server.GetStringData($"Register\n", out string dataReceived);
-
-            // dataReceived = dataReceived.Split('\r')[0];
-            //if (dataReceived[dataReceived.Length - 1] != '\n')
-            //     dataReceived += "\n";
-            //  Thread.Sleep(10000);
-            //  Console.WriteLine("Sleep ended");
-
-            //  server.GetStringData($"{dataReceived}|100\n", out string dataReceived2);
-            //  int xx = server.GetIntData($"{dataReceived}|100\n");
-
-            Console.WriteLine(dataReceived);
-            //  Console.WriteLine(dataReceived2);
-            // Console.WriteLine($"Received int : {xx}");
-            //File.WriteAllText("NewTask.txt", dataReceived);
-
-
-            Console.ReadKey();
         }
 
+        static void StartThreadsWork(List<Thread> threads)
+        {
+            foreach (var thread in threads)
+            {
+                thread.Start();
+                Thread.Sleep(THREAD_START_DELAY);
+            }
+        }
+
+        static void JoinToAwaitThreads(List<Thread> threads)
+        {
+            foreach (var thread in threads)
+            {
+                thread.Join();
+            }
+        }
 
         public static double CountMedian(List<int> inputData)
         {
@@ -153,8 +136,6 @@ namespace TakeprofitTechnologyTest
             return result;
         }
 
-
-
     }
-
 }
+
