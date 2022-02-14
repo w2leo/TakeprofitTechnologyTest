@@ -9,8 +9,9 @@ namespace TakeprofitTechnologyTest
     public class ServerIO : ServerConnector
     {
         private const int MAX_BUFFER_SIZE = 64;
-        private const int MAX_READ_TRY = 40;
+        private const int MAX_READ_TRY = 100;
         private const int MAX_TIMEOUT = 10000;
+        private const int ERROR_CODE = -1;
         private Stream serverStream;
 
         public ServerIO(string serverAdress, int serverPort) : base(serverAdress, serverPort)
@@ -50,19 +51,19 @@ namespace TakeprofitTechnologyTest
         private string ReadMessage()
         {
             string receivedString = string.Empty;
-            int receivedBytes;
-            
-            // do
-            //   {
+            int receivedBytes = 0;
+
+            //do
+            //{
             Byte[] data = new byte[MAX_BUFFER_SIZE];
             if (server.Connected)
             {
                 receivedBytes = serverStream.Read(data, 0, data.Length);
                 receivedString += (Encoding.GetEncoding("KOI8-R").GetString(data, 0, data.Length));
                 //Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : readPart : {receivedString}");
-                //  }
-                //   while (receivedBytes == MAX_BUFFER_SIZE);
             }
+
+            //   } while (receivedBytes == MAX_BUFFER_SIZE);
             return receivedString.ToString();
         }
 
@@ -73,41 +74,41 @@ namespace TakeprofitTechnologyTest
             Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : Sent: {message}");
         }
 
-        public string GetStringData(string inputData)
+        public bool GetStringData(string inputData, out string receivedMessage)
         {
             ReadMessage();
             Thread.Sleep(10);
-            //bool status = false;
-            string receivedMessage = string.Empty;
-            // while (!status)
-            //  {
+            receivedMessage = string.Empty;
             SendMessage(inputData);
             for (int i = 0; i < MAX_READ_TRY && server.Connected; i++)
             {
-               
                 receivedMessage += ReadMessage();
-
                 if (receivedMessage.Contains("\n"))
                 {
-                   // status = true;
                     Console.WriteLine($"\nReceive completed : {ConvertDataToInt(receivedMessage)}");
-                    break;
+                    return true;
                 }
-                //Console.Write($"-{i}");
             }
-            //    }         
-            return receivedMessage;
+            return false;
         }
 
         public int GetIntData(string inputData)
         {
-            string data = GetStringData(inputData);
-            int result = ConvertDataToInt(data);
+            int result = ERROR_CODE;
+            if (GetStringData(inputData, out string data)) ;
+            {
+                result = ConvertDataToInt(data);
+            }
             return result;
         }
 
         private int ConvertDataToInt(string data)
         {
+            if (!data.Contains("\n"))
+            {
+                return -1;
+            }
+
             string resultString = RemoveTrashSymbols(data);
 
             if (int.TryParse(resultString, out int resultInt))

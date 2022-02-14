@@ -12,6 +12,7 @@ namespace TakeprofitTechnologyTest
         const string ADRESS = "88.212.241.115";
         const int PORT = 2013;
         const int MAX_NUMBER_VALUE = 2018;
+        const int THREAD_START_DELAY = 2000;
         static Dictionary<int, int> dataDictionary = new Dictionary<int, int>();
         static object locker = new object();
 
@@ -48,7 +49,6 @@ namespace TakeprofitTechnologyTest
                             {
                                 SetDataToDictionary(sendData, receivedNumber);
                             }
-
                             successfullRead = true;
                         }
                     }
@@ -58,7 +58,6 @@ namespace TakeprofitTechnologyTest
                     Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : read failed");
                 }
                 Thread.Sleep(1000);
-                //Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : Reconnecting");
             }
         }
 
@@ -73,66 +72,86 @@ namespace TakeprofitTechnologyTest
             else return -1;
         }
 
-        static void SetDataToDictionary(int key, int value)
+        public static void SetDataToDictionary(int key, int value)
         {
             dataDictionary[key] = value;
         }
 
         static void Main(string[] args)
         {
-             DateTime startTime = DateTime.Now;
-             Console.WriteLine($"Start time = {startTime}");
-             List<Thread> threads = new List<Thread>();
-             for (int i = 0; i < MAX_THREADS; i++)
-             {
-                 threads.Add(new Thread(GetData));
-                 threads[i].Start();
-                 Thread.Sleep(2000);
-             }
+            DateTime startTime = DateTime.Now;
+            Console.WriteLine($"Start time = {startTime}");
+            List<Thread> threads = new List<Thread>();
+            for (int i = 0; i < MAX_THREADS; i++)
+            {
+                threads.Add(new Thread(GetData));
+                threads[i].Start();
+                Thread.Sleep(THREAD_START_DELAY);
+            }
 
-             for (int i = 0; i < MAX_THREADS; i++)
-             {
-                 threads[i].Join();
-             }
+            for (int i = 0; i < MAX_THREADS; i++)
+            {
+                threads[i].Join();
+            }
 
-             DateTime endTime = DateTime.Now;
-             Console.WriteLine($"End time = {endTime}");
-             Console.WriteLine($"Time duration = {endTime - startTime}");
+            DateTime endTime = DateTime.Now;
+            Console.WriteLine($"End time = {endTime}");
+            Console.WriteLine($"Time duration = {endTime - startTime}");
 
-             List<int> sortedData = dataDictionary.Values.ToList<int>();
-             sortedData.Sort();
-
-             int result;
-             int dataLenght = sortedData.Count;
-             int medianIndex = dataLenght / 2;
-
-             if (dataLenght %2 != 0)
-             {
-                 result = sortedData[medianIndex];
-             }
-             else
-             {
-                 int highIndex = medianIndex;
-                 int lowIndex = highIndex - 1;
-                 result = (sortedData[lowIndex] + sortedData[highIndex]) / 2;
-                 Console.WriteLine($"lowIndex = {lowIndex}. Value = {sortedData[lowIndex]}");
-                 Console.WriteLine($"highIndex = {highIndex}. Value= {sortedData[highIndex]}");
-             }
+            double result = CountMedian(dataDictionary.Values.ToList<int>());
 
 
-             File.WriteAllLines("sortedData.txt", sortedData.ConvertAll(x => x.ToString()));
-             Console.WriteLine();
+            File.WriteAllLines("sortedData.txt", sortedData.ConvertAll(x => x.ToString()));
+            Console.WriteLine();
 
-             Console.WriteLine("Result = " + result);
-             File.WriteAllText("Result.txt", "Result = " + result);
-       
+            Console.WriteLine("Result = " + result);
+            File.WriteAllText("Result.txt", "Result = " + result);
+
+
+            //double result = 4925680.5;
             ServerIO server = new ServerIO(ADRESS, PORT);
-            Console.WriteLine(server.GetStringData($"Check {res}\n"));
+            //Console.WriteLine(server.GetStringData($"74\n"));
+            server.GetStringData($"Check {result}\n", out string dataReceived);
+
+            // server.GetStringData($"Register\n", out string dataReceived);
+
+            // dataReceived = dataReceived.Split('\r')[0];
+            //if (dataReceived[dataReceived.Length - 1] != '\n')
+            //     dataReceived += "\n";
+            //  Thread.Sleep(10000);
+            //  Console.WriteLine("Sleep ended");
+
+            //  server.GetStringData($"{dataReceived}|100\n", out string dataReceived2);
+            //  int xx = server.GetIntData($"{dataReceived}|100\n");
+
+            Console.WriteLine(dataReceived);
+            //  Console.WriteLine(dataReceived2);
+            // Console.WriteLine($"Received int : {xx}");
+            //File.WriteAllText("NewTask.txt", dataReceived);
+
 
             Console.ReadKey();
         }
 
 
+        public static double CountMedian(List<int> inputData)
+        {
+            inputData.Sort();
+            double result;
+            int dataLenght = inputData.Count;
+            int medianIndex = dataLenght / 2;
+            if (dataLenght % 2 != 0)
+            {
+                result = inputData[medianIndex];
+            }
+            else
+            {
+                int highIndex = medianIndex;
+                int lowIndex = highIndex - 1;
+                result = (double)((inputData[lowIndex] + inputData[highIndex])) / 2;
+            }
+            return result;
+        }
 
 
 
