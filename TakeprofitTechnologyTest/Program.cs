@@ -33,7 +33,6 @@ namespace TakeprofitTechnologyTest
 
         static void GetData()
         {
-            Console.WriteLine("Hello");
             int sendData = 0;
             int receivedNumber;
             bool successfullRead = true;
