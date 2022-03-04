@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -12,22 +11,18 @@ namespace TakeprofitTechnologyTest
         const string ADRESS = "88.212.241.115";
         const int PORT = 2013;
         const int MAX_NUMBER_VALUE = 2018;
-        const int THREAD_START_DELAY = 2000;
+        const int THREAD_DELAY = 1000;
         static Dictionary<int, int> dataDictionary = new Dictionary<int, int>();
         static object locker = new object();
 
         static void Main(string[] args)
         {
             List<Thread> activeThreads = new List<Thread>();
-
             CreateNewThreads(MAX_THREADS, activeThreads, GetData);
+            StartThreadsWork(activeThreads);
             JoinToAwaitThreads(activeThreads);
 
-            double result = CountMedian(dataDictionary.Values.ToList<int>());
-
-            ServerIO server = new ServerIO(ADRESS, PORT);
-            server.GetStringData($"Check {result}\n", out string dataReceived);
-            Console.WriteLine(dataReceived);
+            CheckAnswer();
             Console.ReadKey();
         }
 
@@ -36,8 +31,9 @@ namespace TakeprofitTechnologyTest
             return $"{value}\n";
         }
 
-        public static void GetData()
+        static void GetData()
         {
+            Console.WriteLine("Hello");
             int sendData = 0;
             int receivedNumber;
             bool successfullRead = true;
@@ -70,13 +66,13 @@ namespace TakeprofitTechnologyTest
                 }
                 catch
                 {
-                    Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : read failed");
+                    Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : read failed. Reconnecting.");
                 }
-                Thread.Sleep(1000);
+                Thread.Sleep(THREAD_DELAY);
             }
         }
 
-        public static int GetNumberFromDictionary()
+        static int GetNumberFromDictionary()
         {
             int key = dataDictionary.Count + 1;
             if (key <= MAX_NUMBER_VALUE)
@@ -87,16 +83,16 @@ namespace TakeprofitTechnologyTest
             else return -1;
         }
 
-        public static void SetDataToDictionary(int key, int value)
+        static void SetDataToDictionary(int key, int value)
         {
             dataDictionary[key] = value;
         }
 
-        static void CreateNewThreads(int threadCount, List<Thread> threads, ThreadStart startMethod)
+        static void CreateNewThreads(int threadCount, List<Thread> threads, ThreadStart threadMethod)
         {
             for (int i = 0; i < threadCount; i++)
             {
-                threads.Add(new Thread(startMethod));
+                threads.Add(new Thread(GetData));
             }
         }
 
@@ -105,7 +101,7 @@ namespace TakeprofitTechnologyTest
             foreach (var thread in threads)
             {
                 thread.Start();
-                Thread.Sleep(THREAD_START_DELAY);
+                Thread.Sleep(THREAD_DELAY);
             }
         }
 
@@ -117,7 +113,7 @@ namespace TakeprofitTechnologyTest
             }
         }
 
-        public static double CountMedian(List<int> inputData)
+        static double CountMedian(List<int> inputData)
         {
             inputData.Sort();
             double result;
@@ -136,6 +132,13 @@ namespace TakeprofitTechnologyTest
             return result;
         }
 
+        static void CheckAnswer()
+        {
+            double result = CountMedian(dataDictionary.Values.ToList<int>());
+            ServerIO server = new ServerIO(ADRESS, PORT);
+            server.ReadAndGetStringData($"Check {result}\n", out string dataReceived);
+            Console.WriteLine(dataReceived);
+        }
     }
 }
 

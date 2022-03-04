@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-using System.IO;
+﻿using System.IO;
 using System;
 using System.Text;
 using System.Threading;
@@ -11,6 +10,7 @@ namespace TakeprofitTechnologyTest
         private const int MAX_BUFFER_SIZE = 64;
         private const int MAX_READ_TRY = 100;
         private const int MAX_TIMEOUT = 10000;
+        private const int READ_DELAY = 10;
         private const int ERROR_CODE = -1;
         private Stream serverStream;
 
@@ -52,18 +52,12 @@ namespace TakeprofitTechnologyTest
         {
             string receivedString = string.Empty;
             int receivedBytes = 0;
-
-            //do
-            //{
             Byte[] data = new byte[MAX_BUFFER_SIZE];
             if (server.Connected)
             {
                 receivedBytes = serverStream.Read(data, 0, data.Length);
                 receivedString += (Encoding.GetEncoding("KOI8-R").GetString(data, 0, data.Length));
-                //Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : readPart : {receivedString}");
             }
-
-            //   } while (receivedBytes == MAX_BUFFER_SIZE);
             return receivedString.ToString();
         }
 
@@ -74,10 +68,10 @@ namespace TakeprofitTechnologyTest
             Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId} : Sent: {message}");
         }
 
-        public bool GetStringData(string inputData, out string receivedMessage)
+        public bool ReadAndGetStringData(string inputData, out string receivedMessage)
         {
             ReadMessage();
-            Thread.Sleep(10);
+            Thread.Sleep(READ_DELAY);
             receivedMessage = string.Empty;
             SendMessage(inputData);
             for (int i = 0; i < MAX_READ_TRY && server.Connected; i++)
@@ -85,7 +79,7 @@ namespace TakeprofitTechnologyTest
                 receivedMessage += ReadMessage();
                 if (receivedMessage.Contains("\n"))
                 {
-                    Console.WriteLine($"\nReceive completed : {ConvertDataToInt(receivedMessage)}");
+                    Console.WriteLine($"\n {Thread.CurrentThread.ManagedThreadId} : Receive completed : {ConvertDataToInt(receivedMessage)}");
                     return true;
                 }
             }
@@ -95,7 +89,7 @@ namespace TakeprofitTechnologyTest
         public int GetIntData(string inputData)
         {
             int result = ERROR_CODE;
-            if (GetStringData(inputData, out string data)) ;
+            if (ReadAndGetStringData(inputData, out string data)) ;
             {
                 result = ConvertDataToInt(data);
             }
@@ -108,9 +102,7 @@ namespace TakeprofitTechnologyTest
             {
                 return -1;
             }
-
             string resultString = RemoveTrashSymbols(data);
-
             if (int.TryParse(resultString, out int resultInt))
             {
                 return resultInt;
